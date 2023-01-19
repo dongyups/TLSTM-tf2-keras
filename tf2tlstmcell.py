@@ -1,9 +1,9 @@
-# reference: https://github.com/illidanlab/T-LSTM
+### reference: https://github.com/illidanlab/T-LSTM
 
 import tensorflow as tf
 from tensorflow.keras import layers
 
-@tf.keras.utils.register_keras_serializable()
+# @tf.keras.utils.register_keras_serializable()
 class TLSTMCell(layers.Layer):
     """
     Since this is a cell of T-LSTM, you may use it with RNN layer.
@@ -13,11 +13,13 @@ class TLSTMCell(layers.Layer):
     def __init__(self, units, time_input=True, **kwargs):
         self.units = units
         self.time_input = time_input
-        self.state_size = [tf.TensorShape([units]), tf.TensorShape([units])]
-        self.output_size = [tf.TensorShape([units]), tf.TensorShape([units])]
-        self.kernel_initializer = tf.random_normal_initializer(0.0, 0.1) # default setting for T-LSTM is RandomNormal(mean=0., stddev=0.1)
-        self.recurrent_initializer = tf.random_normal_initializer(0.0, 0.1)
-        self.bias_initializer = tf.constant_initializer(1.0) # default setting for T-LSTM is tf.constant_initializer(1.0)
+        self.state_size = [self.units, self.units]
+        self.output_size = self.units
+        # default initializer settings from tf2keras LSTMCell are: "glorot_uniform", "orthogonal", "zeros"
+        self.kernel_initializer = tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.1)
+        self.recurrent_initializer = tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.1)
+        self.bias_initializer = tf.keras.initializers.Constant(value=1.0)
+        # no regularizer, no constraint
         super(TLSTMCell, self).__init__(**kwargs)
 
 
@@ -192,4 +194,70 @@ class TLSTMCell(layers.Layer):
 
 
     def get_config(self):
-        return {"units": self.units, "time_input": self.time_input}
+        config = {
+            "units": self.units,
+            "time_input": self.time_input,
+            "kernel_initializer": tf.keras.initializers.serialize(self.kernel_initializer),
+            "recurrent_initializer": tf.keras.initializers.serialize(self.recurrent_initializer),
+            "bias_initializer": tf.keras.initializers.serialize(self.bias_initializer),
+        }
+        config.update(config_for_enable_caching_device(self))
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+
+    def get_initial_state(self, inputs=None, batch_size=None, dtype=None):
+        return list(
+            generate_zero_filled_state_for_cell(
+                self, inputs, batch_size, dtype
+            )
+        )
+
+
+
+# reference: https://github.com/keras-team/keras/blob/v2.11.0/keras/layers/rnn/rnn_utils.py
+def generate_zero_filled_state_for_cell(cell, inputs, batch_size, dtype):
+    if inputs is not None:
+        batch_size = tf.shape(inputs)[0]
+        dtype = inputs.dtype
+    return generate_zero_filled_state(batch_size, cell.state_size, dtype)
+
+
+def generate_zero_filled_state(batch_size_tensor, state_size, dtype):
+    """Generate a zero filled tensor with shape [batch_size, state_size]."""
+    if batch_size_tensor is None or dtype is None:
+        raise ValueError(
+            "batch_size and dtype cannot be None while constructing initial "
+            f"state. Received: batch_size={batch_size_tensor}, dtype={dtype}"
+        )
+
+    def create_zeros(unnested_state_size):
+        flat_dims = tf.TensorShape(unnested_state_size).as_list()
+        init_state_size = [batch_size_tensor] + flat_dims
+        return tf.zeros(init_state_size, dtype=dtype)
+
+    if tf.nest.is_nested(state_size):
+        return tf.nest.map_structure(create_zeros, state_size)
+    else:
+        return create_zeros(state_size)
+
+
+def config_for_enable_caching_device(rnn_cell):
+    """Return the dict config for RNN cell wrt to enable_caching_device field.
+    Since enable_caching_device is a internal implementation detail for speed up
+    the RNN variable read when running on the multi remote worker setting, we
+    don't want this config to be serialized constantly in the JSON. We will only
+    serialize this field when a none default value is used to create the cell.
+    Args:
+      rnn_cell: the RNN cell for serialize.
+    Returns:
+      A dict which contains the JSON config for enable_caching_device value or
+      empty dict if the enable_caching_device value is same as the default
+      value.
+    """
+    default_enable_caching_device = (
+        tf.compat.v1.executing_eagerly_outside_functions()
+    )
+    if rnn_cell._enable_caching_device != default_enable_caching_device:
+        return {"enable_caching_device": rnn_cell._enable_caching_device}
+    return {}
