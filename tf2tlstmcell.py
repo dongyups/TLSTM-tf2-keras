@@ -3,7 +3,7 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 
-# @tf.keras.utils.register_keras_serializable()
+
 class TLSTMCell(layers.Layer):
     """
     Since this is a cell of T-LSTM, you may use it with RNN layer.
@@ -44,6 +44,7 @@ class TLSTMCell(layers.Layer):
 
 
     def build(self, input_shape):
+        super().build(input_shape)
         if self.time_input is False:
             # Elapsed Time Input is NOT given. Activating Vanilla LSTM cells.
             input_dim = int(input_shape[-1])
@@ -231,10 +232,7 @@ class TLSTMCell(layers.Layer):
         # h_t
         h = o * tf.nn.sigmoid(c)
 
-        # return them
-        hidden = (h)
-        hiddencarray = (h,c)
-        return hidden, hiddencarray
+        return h, [h, c]
 
 
     def get_config(self):
