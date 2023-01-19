@@ -15,7 +15,7 @@ class TLSTMCell(layers.Layer):
         self.time_input = time_input
         self.state_size = [self.units, self.units]
         self.output_size = self.units
-        # default initializer settings from tf2keras LSTMCell are: "glorot_uniform", "orthogonal", "zeros"
+        # default initializer settings for tf2keras LSTMCell are respectively: "glorot_uniform", "orthogonal", "zeros"
         self.kernel_initializer = tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.1)
         self.recurrent_initializer = tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.1)
         self.bias_initializer = tf.keras.initializers.Constant(value=1.0)
