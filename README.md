@@ -1,4 +1,4 @@
-# TLSTM-tf2-keras
+# TLSTM_Cell-tf2-keras
 original (tensorflow 1.2 & python 2.7): https://github.com/illidanlab/T-LSTM
 ### Required
 This code is tested with python==3.8, tensorflow-gpu==2.7, and cuda/cudnn 11.2/8.1
