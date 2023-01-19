@@ -19,7 +19,7 @@ class TLSTMCell(layers.Layer):
         self.kernel_initializer = tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.1)
         self.recurrent_initializer = tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.1)
         self.bias_initializer = tf.keras.initializers.Constant(value=1.0)
-        # no regularizer, no constraint
+        # omitted: regularizer, constraint, dropout, recurrent_dropout
         super(TLSTMCell, self).__init__(**kwargs)
 
 
