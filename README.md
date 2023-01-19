@@ -9,7 +9,6 @@ This code is tested with python==3.8, tensorflow-gpu==2.7, and cuda/cudnn 11.2/8
 ### how to use
 Since this code is only a cell of TLSTM, you need an RNN layer in order to use it.
 ```
-# ex)
 import tensorflow as tf
 from tf2tlstmcell import TLSTMCell
 
