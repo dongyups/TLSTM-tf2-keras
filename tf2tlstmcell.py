@@ -10,17 +10,37 @@ class TLSTMCell(layers.Layer):
     Make sure your inputs have a shape of (batch, seq_len, dim) and your time_inputs have a shape of (batch, seq_len, 1).
     They must be concatenated as a shape of (batch, seq_len, 1 + dim) with the order of 'time' and 'input' (time first).
     """
-    def __init__(self, units, time_input=True, **kwargs):
+    def __init__(
+        self, 
+        units, 
+        time_input=True, 
+        # default initializer settings for tf2keras LSTMCell are: "glorot_uniform", "orthogonal", "zeros"
+        kernel_initializer = tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.1),
+        recurrent_initializer = tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.1),
+        bias_initializer = tf.keras.initializers.Constant(value=1.0),
+        kernel_regularizer=None,
+        recurrent_regularizer=None,
+        bias_regularizer=None,
+        kernel_constraint=None,
+        recurrent_constraint=None,
+        bias_constraint=None,
+        # omitted: dropout, recurrent_dropout
+        **kwargs
+    ):
+        super(TLSTMCell, self).__init__(**kwargs)
         self.units = units
         self.time_input = time_input
+        self.kernel_initializer = tf.keras.initializers.get(kernel_initializer)
+        self.recurrent_initializer = tf.keras.initializers.get(recurrent_initializer)
+        self.bias_initializer = tf.keras.initializers.get(bias_initializer)
+        self.kernel_regularizer=tf.keras.regularizers.get(kernel_regularizer)
+        self.recurrent_regularizer=tf.keras.regularizers.get(recurrent_regularizer)
+        self.bias_regularizer=tf.keras.regularizers.get(bias_regularizer)
+        self.kernel_constraint=tf.keras.constraints.get(kernel_constraint)
+        self.recurrent_constraint=tf.keras.constraints.get(recurrent_constraint)
+        self.bias_constraint=tf.keras.constraints.get(bias_constraint)
         self.state_size = [self.units, self.units]
         self.output_size = self.units
-        # default initializer settings for tf2keras LSTMCell are respectively: "glorot_uniform", "orthogonal", "zeros"
-        self.kernel_initializer = tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.1)
-        self.recurrent_initializer = tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.1)
-        self.bias_initializer = tf.keras.initializers.Constant(value=1.0)
-        # omitted: regularizer, constraint, dropout, recurrent_dropout
-        super(TLSTMCell, self).__init__(**kwargs)
 
 
     def build(self, input_shape):
@@ -36,16 +56,22 @@ class TLSTMCell(layers.Layer):
             shape=(input_dim, self.units),
             name='kernel_i',
             initializer=self.kernel_initializer,
+            regularizer=self.kernel_regularizer,
+            constraint=self.kernel_constraint,
             trainable=True)
         self.recurrent_kernel_i = self.add_weight(
             shape=(self.units, self.units),
             name='recurrent_kernel_i',
             initializer=self.recurrent_initializer,
+            regularizer=self.recurrent_regularizer,
+            constraint=self.recurrent_constraint,
             trainable=True)
         self.bias_i = self.add_weight(
             shape=(self.units),
             name='bias_i',
             initializer=self.bias_initializer,
+            regularizer=self.bias_regularizer,
+            constraint=self.bias_constraint,
             trainable=True)
 
         # f
@@ -53,16 +79,22 @@ class TLSTMCell(layers.Layer):
             shape=(input_dim, self.units),
             name='kernel_f',
             initializer=self.kernel_initializer,
+            regularizer=self.kernel_regularizer,
+            constraint=self.kernel_constraint,
             trainable=True)
         self.recurrent_kernel_f = self.add_weight(
             shape=(self.units, self.units),
             name='recurrent_kernel_f',
             initializer=self.recurrent_initializer,
+            regularizer=self.recurrent_regularizer,
+            constraint=self.recurrent_constraint,
             trainable=True)
         self.bias_f = self.add_weight(
             shape=(self.units),
             name='bias_f',
             initializer=self.bias_initializer,
+            regularizer=self.bias_regularizer,
+            constraint=self.bias_constraint,
             trainable=True)
 
         # g
@@ -70,33 +102,45 @@ class TLSTMCell(layers.Layer):
             shape=(input_dim, self.units),
             name='kernel_g',
             initializer=self.kernel_initializer,
+            regularizer=self.kernel_regularizer,
+            constraint=self.kernel_constraint,
             trainable=True)
         self.recurrent_kernel_g = self.add_weight(
             shape=(self.units, self.units),
             name='recurrent_kernel_g',
             initializer=self.recurrent_initializer,
+            regularizer=self.recurrent_regularizer,
+            constraint=self.recurrent_constraint,
             trainable=True)
         self.bias_g = self.add_weight(
             shape=(self.units),
             name='bias_g',
             initializer=self.bias_initializer,
+            regularizer=self.bias_regularizer,
+            constraint=self.bias_constraint,
             trainable=True)
 
         # o
         self.kernel_o = self.add_weight(
             shape=(input_dim, self.units),
             name='kernel_o',
-            initializer=self.recurrent_initializer,
+            initializer=self.kernel_initializer,
+            regularizer=self.kernel_regularizer,
+            constraint=self.kernel_constraint,
             trainable=True)
         self.recurrent_kernel_o = self.add_weight(
             shape=(self.units, self.units),
             name='recurrent_kernel_o',
             initializer=self.recurrent_initializer,
+            regularizer=self.recurrent_regularizer,
+            constraint=self.recurrent_constraint,
             trainable=True)
         self.bias_o = self.add_weight(
             shape=(self.units),
             name='bias_o',
             initializer=self.bias_initializer,
+            regularizer=self.bias_regularizer,
+            constraint=self.bias_constraint,
             trainable=True)
 
         # Time elapsed part
@@ -200,6 +244,12 @@ class TLSTMCell(layers.Layer):
             "kernel_initializer": tf.keras.initializers.serialize(self.kernel_initializer),
             "recurrent_initializer": tf.keras.initializers.serialize(self.recurrent_initializer),
             "bias_initializer": tf.keras.initializers.serialize(self.bias_initializer),
+            "kernel_regularizer": tf.keras.regularizers.serialize(self.kernel_regularizer),
+            "recurrent_regularizer": tf.keras.regularizers.serialize(self.recurrent_regularizer),
+            "bias_regularizer": tf.keras.regularizers.serialize(self.bias_regularizer),
+            "kernel_constraint": tf.keras.constraints.serialize(self.kernel_constraint),
+            "recurrent_constraint": tf.keras.constraints.serialize(self.recurrent_constraint),
+            "bias_constraint": tf.keras.constraints.serialize(self.bias_constraint),
         }
         config.update(config_for_enable_caching_device(self))
         base_config = super().get_config()
