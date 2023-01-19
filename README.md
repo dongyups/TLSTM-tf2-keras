@@ -16,6 +16,6 @@ from tf2tlstmcell import TLSTMCell
 tlstm_layer = tf.keras.layers.RNN(TLSTMCell(64, time_input=True))
 ```
 
-Note that this is a time-aware LSTM thus additional time input needs to be prepared and the option needs to be set to `True`.
-It may work as a vanilla LSTM otherwise.
+Note that this is a time-aware LSTM thus additional time input needs to be prepared and the option needs to be set to `True`.\
+It may work as a vanilla LSTM otherwise.\
 Refer to the comments in the code for further details.
