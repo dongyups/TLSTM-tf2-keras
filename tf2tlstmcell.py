@@ -215,7 +215,7 @@ class TLSTMCell(layers.Layer):
 
 
 
-# reference: https://github.com/keras-team/keras/blob/v2.11.0/keras/layers/rnn/rnn_utils.py
+### reference: https://github.com/keras-team/keras/blob/v2.11.0/keras/layers/rnn/rnn_utils.py
 def generate_zero_filled_state_for_cell(cell, inputs, batch_size, dtype):
     if inputs is not None:
         batch_size = tf.shape(inputs)[0]
