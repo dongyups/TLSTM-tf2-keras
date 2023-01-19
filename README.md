@@ -18,10 +18,8 @@ Note that this is a time-aware LSTM thus additional time input needs to be prepa
 
 ### Input format
 input shape: [batch_size, seq_len, dim]\
-time input shape: [batch_size, seq_len, 1]\
+time input shape: [batch_size, seq_len, 1]
 ```
 input = tf.concat([time_input, input], axis=-1)
 ```
-\
-\
 Refer to the code for further details.
