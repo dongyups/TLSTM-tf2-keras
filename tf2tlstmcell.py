@@ -1,4 +1,5 @@
 ### reference: https://github.com/illidanlab/T-LSTM
+"""Time-Aware Long-Short Term Memory"""
 
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -59,21 +60,24 @@ class TLSTMCell(layers.Layer):
             initializer=self.kernel_initializer,
             regularizer=self.kernel_regularizer,
             constraint=self.kernel_constraint,
-            trainable=True)
+            trainable=True
+        )
         self.recurrent_kernel_i = self.add_weight(
             shape=(self.units, self.units),
             name='recurrent_kernel_i',
             initializer=self.recurrent_initializer,
             regularizer=self.recurrent_regularizer,
             constraint=self.recurrent_constraint,
-            trainable=True)
+            trainable=True
+        )
         self.bias_i = self.add_weight(
             shape=(self.units),
             name='bias_i',
             initializer=self.bias_initializer,
             regularizer=self.bias_regularizer,
             constraint=self.bias_constraint,
-            trainable=True)
+            trainable=True
+        )
 
         # f
         self.kernel_f = self.add_weight(
@@ -82,21 +86,24 @@ class TLSTMCell(layers.Layer):
             initializer=self.kernel_initializer,
             regularizer=self.kernel_regularizer,
             constraint=self.kernel_constraint,
-            trainable=True)
+            trainable=True
+        )
         self.recurrent_kernel_f = self.add_weight(
             shape=(self.units, self.units),
             name='recurrent_kernel_f',
             initializer=self.recurrent_initializer,
             regularizer=self.recurrent_regularizer,
             constraint=self.recurrent_constraint,
-            trainable=True)
+            trainable=True
+        )
         self.bias_f = self.add_weight(
             shape=(self.units),
             name='bias_f',
             initializer=self.bias_initializer,
             regularizer=self.bias_regularizer,
             constraint=self.bias_constraint,
-            trainable=True)
+            trainable=True
+        )
 
         # g
         self.kernel_g = self.add_weight(
@@ -105,21 +112,24 @@ class TLSTMCell(layers.Layer):
             initializer=self.kernel_initializer,
             regularizer=self.kernel_regularizer,
             constraint=self.kernel_constraint,
-            trainable=True)
+            trainable=True
+        )
         self.recurrent_kernel_g = self.add_weight(
             shape=(self.units, self.units),
             name='recurrent_kernel_g',
             initializer=self.recurrent_initializer,
             regularizer=self.recurrent_regularizer,
             constraint=self.recurrent_constraint,
-            trainable=True)
+            trainable=True
+        )
         self.bias_g = self.add_weight(
             shape=(self.units),
             name='bias_g',
             initializer=self.bias_initializer,
             regularizer=self.bias_regularizer,
             constraint=self.bias_constraint,
-            trainable=True)
+            trainable=True
+        )
 
         # o
         self.kernel_o = self.add_weight(
@@ -128,21 +138,24 @@ class TLSTMCell(layers.Layer):
             initializer=self.kernel_initializer,
             regularizer=self.kernel_regularizer,
             constraint=self.kernel_constraint,
-            trainable=True)
+            trainable=True
+        )
         self.recurrent_kernel_o = self.add_weight(
             shape=(self.units, self.units),
             name='recurrent_kernel_o',
             initializer=self.recurrent_initializer,
             regularizer=self.recurrent_regularizer,
             constraint=self.recurrent_constraint,
-            trainable=True)
+            trainable=True
+        )
         self.bias_o = self.add_weight(
             shape=(self.units),
             name='bias_o',
             initializer=self.bias_initializer,
             regularizer=self.bias_regularizer,
             constraint=self.bias_constraint,
-            trainable=True)
+            trainable=True
+        )
 
         # Time elapsed part
         # W_h(hidden), b(bias) for the time elapsed part.
@@ -150,29 +163,14 @@ class TLSTMCell(layers.Layer):
             shape=(self.units, self.units),
             name='kernel_time',
             initializer=self.kernel_initializer,
-            trainable=True)
+            trainable=True
+        )
         self.bias_time = self.add_weight(
             shape=(self.units),
             name='bias_time',
             initializer=self.bias_initializer,
-            trainable=True)
-
-
-    def _comput_gate_state(self, z0, z1, z2, z3, c_tm1):
-        # input gate (i)
-        i = tf.nn.sigmoid(z0)
-
-        # forget gate (f)
-        f = tf.nn.sigmoid(z1)
-
-        # cell state (g & c)
-        g = tf.nn.tanh(z2)
-        c = f * c_tm1 + g * i
-
-        # output gate (o)
-        o = tf.nn.sigmoid(z3)
-        return c, o
-
+            trainable=True
+        )
 
     def call(self, inputs, states):
         # h_tm1, previous memory state
@@ -205,32 +203,36 @@ class TLSTMCell(layers.Layer):
             # If T is 0, then the weight is one
             c_tm1 = c_tm1 - C_ST + C_ST_dis
 
-        # input gate (i): (X_t * W_x) + (h_tm1 * W_h) + b
+        # LSTM Calculation (X_t * W_x) + (h_tm1 * W_h) + b
+        # input gate (i)
         z0 = tf.matmul(inputs, self.kernel_i)
         z0 += tf.matmul(h_tm1, self.recurrent_kernel_i)
         z0 = tf.nn.bias_add(z0, self.bias_i)
+        z0 = tf.nn.sigmoid(z0)
 
         # forget gate (f)
         z1 = tf.matmul(inputs, self.kernel_f)
         z1 += tf.matmul(h_tm1, self.recurrent_kernel_f)
         z1 = tf.nn.bias_add(z1, self.bias_f)
+        z1 = tf.nn.sigmoid(z1)
 
         # cell state (g & c)
         z2 = tf.matmul(inputs, self.kernel_g)
         z2 += tf.matmul(h_tm1, self.recurrent_kernel_g)
         z2 = tf.nn.bias_add(z2, self.bias_g)
+        z2 = tf.nn.tanh(z2)
 
         # output gate (o)
         z3 = tf.matmul(inputs, self.kernel_o)
         z3 += tf.matmul(h_tm1, self.recurrent_kernel_o)
         z3 = tf.nn.bias_add(z3, self.bias_o)
+        z3 = tf.nn.sigmoid(z3)
 
-        # LSTM Calculation
-        # c_t, o
-        c, o = self._comput_gate_state(z0, z1, z2, z3, c_tm1)
+        # current memory cell (c_t = f*c_tm1 + i*g)
+        c = z1 * c_tm1 + z0 * z2
 
-        # h_t
-        h = o * tf.nn.sigmoid(c)
+        # current hidden state (h_t = o * tanh(c_t))
+        h = z3 * tf.nn.tanh(c)
 
         return h, [h, c]
 
@@ -250,7 +252,7 @@ class TLSTMCell(layers.Layer):
             "bias_constraint": tf.keras.constraints.serialize(self.bias_constraint),
         }
         config.update(config_for_enable_caching_device(self))
-        base_config = super().get_config()
+        base_config = super(TLSTMCell, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
 
@@ -261,6 +263,10 @@ class TLSTMCell(layers.Layer):
             )
         )
 
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 ### reference: https://github.com/keras-team/keras/blob/v2.11.0/keras/layers/rnn/rnn_utils.py
