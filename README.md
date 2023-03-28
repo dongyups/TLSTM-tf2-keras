@@ -1,5 +1,5 @@
 # TLSTM-with-LRP-tf2-keras
-TLSTM original (tensorflow 1.2 & python 2.7): https://github.com/illidanlab/T-LSTM
+TLSTM original (tensorflow 1.2 & python 2.7): https://github.com/illidanlab/T-LSTM \
 LRP for LSTM original: https://github.com/ArrasL/LRP_for_LSTM
 
 ### Required
