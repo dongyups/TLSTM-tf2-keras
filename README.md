@@ -3,7 +3,7 @@ TLSTM original (tensorflow 1.2 & python 2.7): https://github.com/illidanlab/T-LS
 LRP for LSTM original: https://github.com/ArrasL/LRP_for_LSTM
 
 ### Required
-This code is tested with python==3.8, tensorflow-gpu==2.7, and cuda/cudnn 11.2/8.1
+This code is tested with python==3.8, tensorflow-gpu==2.7, numpy==1.23, and cuda/cudnn 11.2/8.1
 - Python 3.X
 - Tensorflow 2.X
 - CUDA 10.X or 11.X for gpu settings depends on your hardware
